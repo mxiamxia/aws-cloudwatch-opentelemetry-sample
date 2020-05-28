@@ -1,0 +1,50 @@
+version: '3.8'
+services:
+  otel:
+    build:
+      context: https://github.com/anuraaga/opentelemetry-collector-contrib.git#custom
+    image: otel/opentelemetry-collector-contrib:master
+    command: --config /config/collector-config.yml
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
+    ports:
+      - '9100:9100'
+      - '9411:9411'
+    volumes:
+      - ./otel:/config
+      - ~/.aws:/root/.aws
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      - OTLP_ENDPOINT=http://otel:9100
+      - ZIPKIN_ENDPOINT=http://otel:9411
+      - AWS_XRAY_DAEMON_ADDRESS=xray:2000
+    ports:
+      - '8081:8081'
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_REGION
+      - HELLO_SERVICE_ENDPOINT=backend:8081
+      - OTLP_ENDPOINT=http://otel:9100
+      - ZIPKIN_ENDPOINT=http://otel:9411
+      - AWS_XRAY_DAEMON_ADDRESS=xray:2000
+      - DYNAMODB_ENDPOINT=dynamodb:8000
+    ports:
+      - '8080:8080'
+    volumes:
+      - ~/.aws:/root/.aws
+    depends_on:
+      - backend
+      - otel
+      - xray
+      - dynamodb-table
+

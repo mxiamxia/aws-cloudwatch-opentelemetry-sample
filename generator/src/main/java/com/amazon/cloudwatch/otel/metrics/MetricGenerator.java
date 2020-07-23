@@ -1,5 +1,6 @@
 package com.amazon.cloudwatch.otel.metrics;
 
+import com.google.common.base.Strings;
 import io.grpc.ManagedChannelBuilder;
 import io.opentelemetry.OpenTelemetry;
 import io.opentelemetry.exporters.otlp.OtlpGrpcMetricExporter;
@@ -17,6 +18,12 @@ public class MetricGenerator {
 
     private static final String OTLP_ENDPOINT = "otlp.endpoint";
     private static String otlpEndpoint = "127.0.0.1:55680";
+
+    static {
+        if (!Strings.isNullOrEmpty(System.getenv(OTLP_ENDPOINT))) {
+            otlpEndpoint = System.getenv(OTLP_ENDPOINT);
+        }
+    }
 
     public static void main(String[] args) {
         try {
@@ -85,7 +92,6 @@ public class MetricGenerator {
             boolean markAsError = random.nextBoolean();
             System.out.println("sending metric data: " + i);
             spanCounter.add(1, "spanName", "testSpan", "isItAnError", "" + markAsError);
-            // do some work
             Thread.sleep(random.nextInt(1000));
             boundTimer.record(System.currentTimeMillis() - startTime);
         }

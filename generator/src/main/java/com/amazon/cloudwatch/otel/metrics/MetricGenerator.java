@@ -12,16 +12,22 @@ import io.opentelemetry.sdk.metrics.export.IntervalMetricReader;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Random;
 
 public class MetricGenerator {
 
     private static final String OTLP_ENDPOINT = "otlp.endpoint";
+    private static final String OTLP_INSTANCE_ID = "otlp.instance.id";
     private static String otlpEndpoint = "127.0.0.1:55680";
+    private static String instanceID = "defaultid";
 
     static {
         if (!Strings.isNullOrEmpty(System.getenv(OTLP_ENDPOINT))) {
             otlpEndpoint = System.getenv(OTLP_ENDPOINT);
+        }
+        if (!Strings.isNullOrEmpty(System.getenv(OTLP_INSTANCE_ID))){
+            instanceID = System.getenv(OTLP_INSTANCE_ID);
         }
     }
 
@@ -59,6 +65,9 @@ public class MetricGenerator {
                         .longCounterBuilder("spanCounter")
                         .setUnit("one")
                         .setDescription("Counting all the spans")
+                        .setConstantLabels(new HashMap<String, String>(){{
+                            put("instanceID", instanceID);
+                        }})
                         .setMonotonic(true)
                         .build();
 

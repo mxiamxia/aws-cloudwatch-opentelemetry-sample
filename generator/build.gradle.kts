@@ -1,5 +1,5 @@
 plugins {
-    java
+    application
 }
 
 group = "org.example"
@@ -9,23 +9,18 @@ repositories {
     mavenCentral()
 }
 
-tasks.register<Jar>("uberJar") {
-    archiveClassifier.set("uber")
-
-    from(sourceSets.main.get().output)
-
-    dependsOn(configurations.runtimeClasspath)
-    from({
-        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
-    })
+application {
+    mainClassName = "com.amazon.cloudwatch.otel.metrics.MetricGenerator"
 }
 
 dependencies {
     implementation(platform("io.grpc:grpc-bom:1.29.0"))
     implementation("io.grpc:grpc-api")
     implementation("io.grpc:grpc-netty-shaded")
-    compile("io.opentelemetry:opentelemetry-sdk:0.4.1")
-    compile("io.opentelemetry:opentelemetry-exporters-otlp:0.4.1")
+    implementation("io.opentelemetry:opentelemetry-sdk:0.6.0")
+    implementation("io.opentelemetry:opentelemetry-exporters-otlp:0.6.0")
+    implementation("io.opentelemetry:opentelemetry-extension-trace-propagators:0.6.0")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-aws-v1-support:0.6.0")
     testCompile("junit", "junit", "4.12")
 }
 
